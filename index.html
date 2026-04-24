@@ -347,7 +347,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);
       <div class="s-lbl">Rendimento da receita<small>quantos bem-casados?</small></div>
       <div class="stepper">
         <button class="s-btn" onclick="chQty('qtd-rec',-5)">−</button>
-        <input class="s-inp" type="number" id="qtd-rec" value="30" min="1" oninput="calcular(); salvar();">
+        <input class="s-inp" type="number" id="qtd-rec" value="45" min="1" oninput="calcular(); salvar();">
         <button class="s-btn" onclick="chQty('qtd-rec',5)">+</button>
       </div>
     </div>
@@ -461,48 +461,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);
 // qtd   = quantidade total nessa embalagem (em g ou un)
 // custo por unidade mínima = preco / qtd
 let insumos = [
-  // Ingredientes (g)
-  {id:1,  nome:'Ovo',                     preco:9.60,   qtd:12,   tipo:'un'},
-  {id:2,  nome:'Açúcar refinado',         preco:4.17,   qtd:1000, tipo:'g'},
-  {id:3,  nome:'Açúcar impalpável',       preco:12.00,  qtd:1000, tipo:'g'},
-  {id:4,  nome:'Açúcar demerara',         preco:6.00,   qtd:1000, tipo:'g'},
-  {id:5,  nome:'Açúcar mascavo',          preco:10.00,  qtd:1000, tipo:'g'},
-  {id:6,  nome:'Farinha de trigo',        preco:4.50,   qtd:1000, tipo:'g'},
-  {id:7,  nome:'Amido de milho',          preco:49.00,  qtd:1800, tipo:'g'},
-  {id:8,  nome:'Fermento em pó',          preco:4.00,   qtd:100,  tipo:'g'},
-  {id:9,  nome:'Manteiga',                preco:18.00,  qtd:1000, tipo:'g'},
-  {id:10, nome:'Baunilha',                preco:12.00,  qtd:960,  tipo:'g'},
-  {id:11, nome:'Ácido cítrico',           preco:6.00,   qtd:50,   tipo:'g'},
-  {id:12, nome:'Cacau em pó',             preco:45.00,  qtd:500,  tipo:'g'},
-  {id:13, nome:'Brigadeiro branco',       preco:53.00,  qtd:2400, tipo:'g'},
-  {id:14, nome:'Brigadeiro cremoso',      preco:62.00,  qtd:2400, tipo:'g'},
-  {id:15, nome:'Brigadeiro de coco',      preco:61.15,  qtd:2700, tipo:'g'},
-  {id:16, nome:'Brigadeiro de limão',     preco:9.15,   qtd:400,  tipo:'g'},
-  {id:17, nome:'Brigadeiro de maracujá',  preco:13.27,  qtd:400,  tipo:'g'},
-  {id:18, nome:'Brigadeiro pistache',     preco:124.75, qtd:2500, tipo:'g'},
-  {id:19, nome:'Geleia frutas vermelhas', preco:15.00,  qtd:400,  tipo:'g'},
-  {id:20, nome:'Abacaxi',                 preco:8.00,   qtd:1,    tipo:'un'},
-  // Embalagens (un)
-  {id:30, nome:'Caixa BC 25 unidades',    preco:1.91,   qtd:1,    tipo:'un'},
-  {id:31, nome:'Caixa BC 36 unidades',    preco:2.68,   qtd:1,    tipo:'un'},
-  {id:32, nome:'Bem-casado doce de leite',preco:1.35,   qtd:1,    tipo:'un'},
-  {id:33, nome:'Anel Juta',               preco:21.90,  qtd:45,   tipo:'un'},
-  {id:34, nome:'Anel Juta Renda',         preco:35.00,  qtd:45,   tipo:'un'},
-  {id:35, nome:'Celofane',                preco:8.00,   qtd:100,  tipo:'un'},
-  {id:36, nome:'Papel canelinha',         preco:12.00,  qtd:100,  tipo:'un'},
-  {id:37, nome:'Etiqueta',                preco:4.00,   qtd:1,    tipo:'un'},
-  {id:38, nome:'Chaton resina',           preco:40.00,  qtd:100,  tipo:'un'},
+  {id:1,  nome:'Ovos',                 preco:15.00,  qtd:12,   tipo:'un'},
+  {id:2,  nome:'Açúcar',               preco:5.00,   qtd:1000, tipo:'g'},
+  {id:3,  nome:'Farinha de trigo',     preco:4.00,   qtd:1000, tipo:'g'},
+  {id:4,  nome:'Amido de milho',       preco:8.00,   qtd:200,  tipo:'g'},
+  {id:5,  nome:'Fermento',             preco:4.00,   qtd:100,  tipo:'g'},
+  {id:6,  nome:'Essência de baunilha', preco:12.00,  qtd:960,  tipo:'g'},
+  {id:7,  nome:'Leite condensado',     preco:6.00,   qtd:1,    tipo:'un'},
+  {id:8,  nome:'Creme de leite',       preco:4.00,   qtd:1,    tipo:'un'},
+  {id:9,  nome:'Doce de leite',        preco:24.00,  qtd:800,  tipo:'g'},
+  {id:10, nome:'Glacúcar',             preco:4.00,   qtd:100,  tipo:'g'},
+  {id:30, nome:'Celofane',             preco:78.00,  qtd:1500, tipo:'un'},
+  {id:31, nome:'Crepom nacional',      preco:3.50,   qtd:40,   tipo:'un'},
+  {id:32, nome:'Fita de cetim 10mm',   preco:13.00,  qtd:110,  tipo:'un'},
+  {id:33, nome:'Etiqueta',             preco:200.00, qtd:1000, tipo:'un'},
+  {id:34, nome:'Caixa 25 bem-casados', preco:2.00,   qtd:1,    tipo:'un'},
+  {id:35, nome:'Papel canelinha',      preco:38.00,  qtd:200,  tipo:'un'},
 ];
 
 let receita = [
-  {iid:1,  qtd:4},
-  {iid:2,  qtd:200},
-  {iid:6,  qtd:250},
-  {iid:9,  qtd:150},
-  {iid:13, qtd:500},
-  {iid:30, qtd:1},
-  {iid:33, qtd:1},
-  {iid:37, qtd:1},
+  // Ingredientes
+  {iid:1,  qtd:9},    // Ovos: 9 un
+  {iid:2,  qtd:200},  // Açúcar: 200g
+  {iid:3,  qtd:250},  // Farinha de trigo: 250g
+  {iid:4,  qtd:20},   // Amido de milho: 20g
+  {iid:5,  qtd:10},   // Fermento: 10g
+  {iid:6,  qtd:10},   // Essência de baunilha: 10g
+  {iid:7,  qtd:3},    // Leite condensado: 3 un
+  {iid:8,  qtd:2},    // Creme de leite: 2 un
+  {iid:9,  qtd:333},  // Doce de leite: 333g
+  {iid:10, qtd:500},  // Glacúcar: 500g
+  // Embalagens
+  {iid:30, qtd:45},   // Celofane: 45 un
+  {iid:31, qtd:45},   // Crepom nacional: 45 un
+  {iid:32, qtd:45},   // Fita de cetim 10mm: 45 un
+  {iid:33, qtd:45},   // Etiqueta: 45 un
+  {iid:34, qtd:2},    // Caixa 25 bem-casados: 2 un
+  {iid:35, qtd:4},    // Papel canelinha: 4 un
 ];
 
 let nid = 100;
@@ -539,7 +534,7 @@ function goTab(n){
   document.getElementById('s-insumos').classList.toggle('active',n===0);
   document.getElementById('s-receita').classList.toggle('active',n===1);
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
-  if(n===1){renderReceita();calcular();}
+  if(n===1){renderReceita();setTimeout(()=>calcular(),150);}
 }
 
 function toggleCard(k){
@@ -705,7 +700,8 @@ function addToReceita(){
   const ins=insumos.find(i=>i.id===id);
   if(!ins)return;
   receita.push({iid:id, qtd:ins.tipo==='un'?1:50});
-  renderReceita();calcular();salvar();
+  renderReceita();
+  setTimeout(()=>{calcular();salvar();}, 100);
 }
 
 function delRec(idx){
@@ -715,16 +711,19 @@ function delRec(idx){
 
 function upRecQtd(idx,v){
   receita[idx].qtd=parseFloat(v)||0;
-  calcular();salvar();
-  // atualiza custo sem re-render completo
+  // atualiza custo do item visualmente
   const ins=insumos.find(i=>i.id===receita[idx].iid);
-  if(!ins)return;
-  const custo=cpu(ins)*receita[idx].qtd;
-  const items=document.querySelectorAll('.rec-item');
-  if(items[idx]){
-    const el=items[idx].querySelector('.rec-cost');
-    if(el)el.innerHTML=`${fmt(custo)}<small>${receita[idx].qtd}${ins.tipo}</small>`;
+  if(ins){
+    const custo=cpu(ins)*receita[idx].qtd;
+    const items=document.querySelectorAll('.rec-item');
+    if(items[idx]){
+      const el=items[idx].querySelector('.rec-cost');
+      if(el)el.innerHTML=`${fmt(custo)}<small>${receita[idx].qtd}${ins.tipo}</small>`;
+    }
   }
+  // recalcula tudo
+  calcular();
+  salvar();
 }
 
 // ═══════ CALCULAR + SEMÁFORO ═══════
