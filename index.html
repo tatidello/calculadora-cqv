@@ -285,22 +285,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);
 
   <!-- RESULTADO -->
   <div class="result-hero">
-    <div class="rh-eye">Preço mínimo de venda por unidade</div>
+    <div class="rh-eye">Preço mínimo sugerido por unidade</div>
     <div class="rh-price"><sup>R$</sup><span id="precoFinal">0,00</span></div>
     <div class="rh-unit" id="rh-sub">Preencha a receita abaixo para calcular</div>
-    <div class="semaforo s-empty" id="semaforo">
+
+    <!-- CAMPO PREÇO PRATICADO -->
+    <div style="margin-top:14px;background:rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;">
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px;">Qual preço você está cobrando?</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="pill" style="flex:1;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.15);">
+          <span class="pill-pre" style="color:var(--blush);">R$</span>
+          <input type="number" id="preco-praticado" placeholder="0,00" inputmode="decimal" step="0.01"
+            oninput="calcular();salvar();"
+            style="color:#fff;font-size:16px;font-weight:600;">
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.5;">por<br>unidade</div>
+      </div>
+    </div>
+
+    <!-- SEMÁFORO -->
+    <div class="semaforo s-empty" id="semaforo" style="margin-top:12px;">
       <div class="sem-top">
         <div class="sem-dot empty" id="sem-dot"></div>
         <div class="sem-lbl" id="sem-lbl">Aguardando dados...</div>
         <div class="sem-pct" id="sem-pct">—</div>
       </div>
       <div class="sem-track"><div class="sem-fill" id="sem-fill"></div></div>
-      <div class="sem-msg" id="sem-msg">Informe os ingredientes e embalagens ↓</div>
+      <div class="sem-msg" id="sem-msg">Informe os ingredientes da receita ↓</div>
     </div>
+
+    <!-- BREAKDOWN -->
     <div class="breakdown">
-      <div class="bi"><div class="bi-val" id="b-ingr">R$ 0,00</div><div class="bi-lbl">Ingredientes</div></div>
-      <div class="bi"><div class="bi-val" id="b-embal">R$ 0,00</div><div class="bi-lbl">Embalagem</div></div>
+      <div class="bi"><div class="bi-val" id="b-prod">R$ 0,00</div><div class="bi-lbl">Custo produção</div></div>
       <div class="bi"><div class="bi-val" id="b-fixed">R$ 0,00</div><div class="bi-lbl">Fixos/un</div></div>
+      <div class="bi"><div class="bi-val" id="b-min">R$ 0,00</div><div class="bi-lbl">Preço mínimo</div></div>
     </div>
   </div>
 
@@ -524,7 +542,7 @@ function salvar(){
       qtdMes:document.getElementById('qtd-mes').value
     };
     localStorage.setItem(SAVE_KEY,JSON.stringify({insumos,receita,fixos,
-      qtdRec:document.getElementById('qtd-rec').value, nid}));
+      qtdRec:document.getElementById('qtd-rec').value, precoPraticado:document.getElementById('preco-praticado').value, nid}));
     ['save-ind','save-ind2'].forEach(id=>{
       const el=document.getElementById(id);
       if(!el)return;
@@ -554,6 +572,7 @@ function restaurar(){
       if(f.net)     document.getElementById('fx-net').value=f.net;
       if(f.outros)  document.getElementById('fx-outros').value=f.outros;
       if(f.qtdMes)  document.getElementById('qtd-mes').value=f.qtdMes;
+    if(d.precoPraticado) document.getElementById('preco-praticado').value=d.precoPraticado;
     }
   }catch(e){}
 }
@@ -699,37 +718,40 @@ function calcular(){
   const qtdRec=Math.max(1,parseInt(document.getElementById('qtd-rec').value)||1);
   const qtdMes=Math.max(1,parseInt(document.getElementById('qtd-mes').value)||1);
 
-  let totIngr=0, totEmbal=0;
+  // Custo total de produção (todos os insumos da receita)
+  let totProd=0;
   receita.forEach(r=>{
     const ins=insumos.find(i=>i.id===r.iid);
     if(!ins)return;
-    const c=cpu(ins)*r.qtd;
-    if(ins.id>=30) totEmbal+=c; else totIngr+=c;
+    totProd+=cpu(ins)*r.qtd;
   });
 
-  const ingrUn  = totIngr / qtdRec;
-  const embalUn = totEmbal / qtdRec;
+  const prodUn  = totProd / qtdRec;
   const totFixo = val('fx-salario')+val('fx-aluguel')+val('fx-luz')+val('fx-agua')+val('fx-gas')+val('fx-net')+val('fx-outros');
   const fixoUn  = totFixo / qtdMes;
-  const custoTotal = ingrUn + embalUn + fixoUn;
+  const custoTotal = prodUn + fixoUn;
 
-  // Preço mínimo: CMV (ingr+embal) ≤ 30% do preço
-  const cmvBase = ingrUn + embalUn;
-  let preco = cmvBase > 0 ? cmvBase / 0.30 : custoTotal > 0 ? custoTotal * 1.05 : 0;
-  if(preco < custoTotal) preco = custoTotal * 1.05;
+  // Preço mínimo: custo produção / 0.30 (CMV 30%)
+  let precoMin = prodUn > 0 ? prodUn / 0.30 : custoTotal > 0 ? custoTotal * 1.05 : 0;
+  if(precoMin < custoTotal) precoMin = custoTotal * 1.05;
 
-  const cmvReal = preco > 0 ? (cmvBase / preco) * 100 : 0;
+  // Preço praticado pela aluna
+  const precoPraticado = val('preco-praticado');
 
-  // UI
-  document.getElementById('precoFinal').textContent=fmtN(preco);
-  document.getElementById('rh-sub').textContent=`Custo/un: R$ ${fmtN(custoTotal)} · Receita rende ${qtdRec} unidades`;
-  document.getElementById('b-ingr').textContent=fmt(ingrUn);
-  document.getElementById('b-embal').textContent=fmt(embalUn);
+  // CMV usa preço praticado se preenchido, senão usa preço mínimo
+  const precoReferencia = precoPraticado > 0 ? precoPraticado : precoMin;
+  const cmvReal = precoReferencia > 0 ? (prodUn / precoReferencia) * 100 : 0;
+
+  // UI — preço mínimo sugerido
+  document.getElementById('precoFinal').textContent=fmtN(precoMin);
+  document.getElementById('rh-sub').textContent=`Custo produção/un: R$ ${fmtN(prodUn)} · Rendimento: ${qtdRec} unidades`;
+  document.getElementById('b-prod').textContent=fmt(prodUn);
   document.getElementById('b-fixed').textContent=fmt(fixoUn);
-  document.getElementById('ttl-rec').textContent=fmt(ingrUn+embalUn);
+  document.getElementById('b-min').textContent=fmt(precoMin);
+  document.getElementById('ttl-rec').textContent=fmt(prodUn);
   document.getElementById('ttl-fix').textContent=fmt(fixoUn);
 
-  // SEMÁFORO
+  // SEMÁFORO — baseado no preço praticado (ou mínimo se não preenchido)
   const sem=document.getElementById('semaforo');
   const dot=document.getElementById('sem-dot');
   const lbl=document.getElementById('sem-lbl');
@@ -740,31 +762,38 @@ function calcular(){
   pct.textContent=cmvReal.toFixed(1)+'%';
   fill.style.width=Math.min(cmvReal,100)+'%';
 
-  if(preco===0||cmvBase===0){
+  if(prodUn===0){
     sem.className='semaforo s-empty';
     dot.className='sem-dot empty';
     lbl.textContent='Aguardando dados...';
     pct.textContent='—';
     fill.style.background='rgba(255,255,255,.15)';
-    msg.textContent='Informe os ingredientes e embalagens da receita ↓';
+    msg.textContent='Informe os ingredientes da receita ↓';
+  } else if(precoPraticado===0){
+    // Ainda não preencheu o preço praticado — mostra diagnóstico do preço mínimo
+    sem.className='semaforo s-ok';
+    dot.className='sem-dot ok';
+    lbl.textContent='✅ Preço mínimo calculado';
+    fill.style.background='#4A9B6F';
+    msg.textContent=`Custo de produção: R$ ${fmtN(prodUn)} · CMV ideal 30% → preço mínimo R$ ${fmtN(precoMin)}. Informe seu preço acima para o diagnóstico.`;
   } else if(cmvReal<=30){
     sem.className='semaforo s-ok';
     dot.className='sem-dot ok';
     lbl.textContent='✅ CMV saudável';
     fill.style.background='#4A9B6F';
-    msg.textContent=`CMV de ${cmvReal.toFixed(1)}% — seu negócio está sustentável com esse preço.`;
+    msg.textContent=`CMV de ${cmvReal.toFixed(1)}% com R$ ${fmtN(precoPraticado)}/un — seu negócio está sustentável! ✨`;
   } else if(cmvReal<=35){
     sem.className='semaforo s-warn';
     dot.className='sem-dot warn';
     lbl.textContent='⚠️ Ponto de atenção';
     fill.style.background='#D4875A';
-    msg.textContent=`CMV de ${cmvReal.toFixed(1)}% — entre 30% e 35%. Reveja fornecedores ou reduza custos.`;
+    msg.textContent=`CMV de ${cmvReal.toFixed(1)}% com R$ ${fmtN(precoPraticado)}/un — entre 30% e 35%. O preço mínimo ideal seria R$ ${fmtN(precoMin)}.`;
   } else {
     sem.className='semaforo s-danger';
     dot.className='sem-dot danger';
     lbl.textContent='🚨 Negócio em risco!';
     fill.style.background='#C05C4A';
-    msg.textContent=`CMV de ${cmvReal.toFixed(1)}% — acima de 35%. Você pode estar no prejuízo. Reveja urgente!`;
+    msg.textContent=`CMV de ${cmvReal.toFixed(1)}% com R$ ${fmtN(precoPraticado)}/un — você está vendendo abaixo do mínimo! Preço mínimo: R$ ${fmtN(precoMin)}.`;
   }
 }
 
