@@ -412,21 +412,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);
           <input type="number" id="fx-outros" placeholder="0,00" inputmode="decimal" step="0.01" oninput="calcular();salvar();">
         </div>
       </div>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-        <div class="row" style="margin-bottom:0;">
-          <div class="lbl">Unidades que vendo por mês<small>para rateio dos fixos</small></div>
-          <div class="stepper">
-            <button class="s-btn" onclick="chQty('qtd-mes',-10)">−</button>
-            <input class="s-inp" type="number" id="qtd-mes" value="100" min="1" oninput="calcular();salvar();">
-            <button class="s-btn" onclick="chQty('qtd-mes',10)">+</button>
-          </div>
+
+    </div>
+  </div>
+
+  <!-- PONTO DE EQUILÍBRIO -->
+  <div class="card" style="margin-top:12px;">
+    <div class="card-hd" onclick="toggleCard('pe')">
+      <div class="ci" style="background:#F3F0FD;">🎯</div>
+      <div style="flex:1">
+        <div class="card-title">Ponto de Equilíbrio</div>
+        <div class="card-sub">Quanto você precisa faturar por mês?</div>
+      </div>
+      <div class="chev open" id="chev-pe">▼</div>
+    </div>
+    <div class="cb" id="cb-pe">
+
+      <!-- FATURAMENTO ATUAL -->
+      <div style="margin-bottom:14px;">
+        <div class="lbl" style="margin-bottom:6px;">Quanto você está faturando hoje?<small>coloque sua média mensal atual</small></div>
+        <div class="pill">
+          <span class="pill-pre">R$</span>
+          <input type="number" id="fat-atual" placeholder="0,00" inputmode="decimal" step="0.01" oninput="calcular();salvar();">
         </div>
+      </div>
+
+      <!-- RESULTADO PONTO DE EQUILÍBRIO -->
+      <div id="pe-resultado" style="background:var(--soft);border-radius:12px;padding:14px;">
+        <p style="font-size:12px;color:rgba(122,78,53,.5);text-align:center;">Preencha os custos fixos e a receita para calcular ↓</p>
       </div>
     </div>
   </div>
 
   <div class="dica">
-    <p>🎯 <strong>CMV é o termômetro do negócio:</strong> Ingredientes + embalagem devem representar no máximo 30% do preço de venda. Quanto menor o CMV, maior o seu lucro.</p>
+    <p>🎯 <strong>CMV é o termômetro do negócio:</strong> Custo de produção deve representar no máximo 30% do preço de venda. Quanto menor o CMV, maior o seu lucro.</p>
   </div>
 
   <div class="footer" style="margin-top:20px;">
@@ -539,10 +558,10 @@ function salvar(){
       salario:val('fx-salario'), aluguel:val('fx-aluguel'),
       luz:val('fx-luz'), agua:val('fx-agua'), gas:val('fx-gas'),
       net:val('fx-net'), outros:val('fx-outros'),
-      qtdMes:document.getElementById('qtd-mes').value
+      qtdMes:'100'
     };
     localStorage.setItem(SAVE_KEY,JSON.stringify({insumos,receita,fixos,
-      qtdRec:document.getElementById('qtd-rec').value, precoPraticado:document.getElementById('preco-praticado').value, nid}));
+      qtdRec:document.getElementById('qtd-rec').value, precoPraticado:document.getElementById('preco-praticado').value, fatAtual:document.getElementById('fat-atual').value, nid}));
     ['save-ind','save-ind2'].forEach(id=>{
       const el=document.getElementById(id);
       if(!el)return;
@@ -573,6 +592,7 @@ function restaurar(){
       if(f.outros)  document.getElementById('fx-outros').value=f.outros;
       if(f.qtdMes)  document.getElementById('qtd-mes').value=f.qtdMes;
     if(d.precoPraticado) document.getElementById('preco-praticado').value=d.precoPraticado;
+    if(d.fatAtual) document.getElementById('fat-atual').value=d.fatAtual;
     }
   }catch(e){}
 }
@@ -728,12 +748,10 @@ function calcular(){
 
   const prodUn  = totProd / qtdRec;
   const totFixo = val('fx-salario')+val('fx-aluguel')+val('fx-luz')+val('fx-agua')+val('fx-gas')+val('fx-net')+val('fx-outros');
-  const fixoUn  = totFixo / qtdMes;
-  const custoTotal = prodUn + fixoUn;
+  const custoTotal = prodUn; // fixos calculados separadamente no PE
 
   // Preço mínimo: custo produção / 0.30 (CMV 30%)
-  let precoMin = prodUn > 0 ? prodUn / 0.30 : custoTotal > 0 ? custoTotal * 1.05 : 0;
-  if(precoMin < custoTotal) precoMin = custoTotal * 1.05;
+  let precoMin = prodUn > 0 ? prodUn / 0.30 : 0;
 
   // Preço praticado pela aluna
   const precoPraticado = val('preco-praticado');
@@ -744,12 +762,12 @@ function calcular(){
 
   // UI — preço mínimo sugerido
   document.getElementById('precoFinal').textContent=fmtN(precoMin);
-  document.getElementById('rh-sub').textContent=`Custo produção/un: R$ ${fmtN(prodUn)} · Rendimento: ${qtdRec} unidades`;
+  document.getElementById('rh-sub').textContent=`Custo produção/un: R$ ${fmtN(prodUn)} · Rendimento: ${qtdRec} unid.`;
   document.getElementById('b-prod').textContent=fmt(prodUn);
-  document.getElementById('b-fixed').textContent=fmt(fixoUn);
+  document.getElementById('b-fixed').textContent=fmt(totFixo);
   document.getElementById('b-min').textContent=fmt(precoMin);
   document.getElementById('ttl-rec').textContent=fmt(prodUn);
-  document.getElementById('ttl-fix').textContent=fmt(fixoUn);
+  document.getElementById('ttl-fix').textContent=fmt(totFixo);
 
   // SEMÁFORO — baseado no preço praticado (ou mínimo se não preenchido)
   const sem=document.getElementById('semaforo');
@@ -794,6 +812,89 @@ function calcular(){
     lbl.textContent='🚨 Negócio em risco!';
     fill.style.background='#C05C4A';
     msg.textContent=`CMV de ${cmvReal.toFixed(1)}% com R$ ${fmtN(precoPraticado)}/un — você está vendendo abaixo do mínimo! Preço mínimo: R$ ${fmtN(precoMin)}.`;
+  }
+
+  // ── PONTO DE EQUILÍBRIO ──
+  const peEl = document.getElementById('pe-resultado');
+  const fatAtual = val('fat-atual');
+  const precoVenda = precoPraticado > 0 ? precoPraticado : precoMin;
+
+  if(prodUn === 0 || totFixo === 0){
+    peEl.innerHTML = '<p style="font-size:12px;color:rgba(122,78,53,.5);text-align:center;">Preencha os custos fixos e a receita para calcular ↓</p>';
+  } else {
+    // Margem de contribuição = preço venda - custo produção/un
+    const margContrib = precoVenda - prodUn;
+    if(margContrib <= 0){
+      peEl.innerHTML = '<p style="font-size:12px;color:var(--danger);text-align:center;">⚠️ Preço de venda menor que o custo de produção!</p>';
+    } else {
+      // Ponto de equilíbrio em unidades e faturamento
+      const peUnidades = Math.ceil(totFixo / margContrib);
+      const peFaturamento = peUnidades * precoVenda;
+      // Faturamento para lucro saudável (20%) e mínimo (10%)
+      const fatSaudavel = peFaturamento * 1.30;
+      const fatMinimo   = peFaturamento * 1.10;
+
+      // Diagnóstico do faturamento atual
+      let corFundo, icone, titulo, textoFat;
+      if(fatAtual === 0){
+        corFundo='var(--soft)'; icone='📊'; titulo='Seu ponto de equilíbrio';
+        textoFat='Informe seu faturamento atual acima para ver seu diagnóstico.';
+      } else if(fatAtual < peFaturamento){
+        corFundo='rgba(192,92,74,.1)'; icone='🔴'; titulo='Negócio em risco!';
+        textoFat=`Você está faturando R$ ${fmtN(peFaturamento - fatAtual)} abaixo do equilíbrio. Você precisa aumentar suas vendas ou reduzir custos.`;
+      } else if(fatAtual < fatMinimo){
+        corFundo='rgba(212,135,90,.1)'; icone='🟡'; titulo='Equilibrada, mas sem folga';
+        textoFat=`Você cobre os custos, mas sobra pouco. Para 10% de lucro, precisaria de R$ ${fmtN(fatMinimo)}/mês.`;
+      } else if(fatAtual < fatSaudavel){
+        corFundo='rgba(74,155,111,.1)'; icone='🟢'; titulo='Negócio saudável!';
+        textoFat=`Parabéns! Você tem entre 10% e 20% de lucro. Para atingir 20% de lucro, meta ideal: R$ ${fmtN(fatSaudavel)}/mês.`;
+      } else {
+        corFundo='rgba(74,155,111,.15)'; icone='🌟'; titulo='Excelente! Lucro acima de 20%';
+        textoFat=`Seu negócio está muito bem! Continue mantendo os custos sob controle.`;
+      }
+
+      peEl.innerHTML = `
+        <div style="background:${corFundo};border-radius:10px;padding:12px;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:700;color:var(--deep);margin-bottom:4px;">${icone} ${titulo}</div>
+          <div style="font-size:11px;color:var(--mocha);line-height:1.5;">${textoFat}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:var(--white);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border);">
+            <div style="font-size:10px;color:rgba(122,78,53,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Vender por mês</div>
+            <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--rose);">${peUnidades}</div>
+            <div style="font-size:10px;color:rgba(122,78,53,.5);">unidades</div>
+          </div>
+          <div style="background:var(--white);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border);">
+            <div style="font-size:10px;color:rgba(122,78,53,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Faturar por mês</div>
+            <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--rose);">R$ ${fmtN(peFaturamento)}</div>
+            <div style="font-size:10px;color:rgba(122,78,53,.5);">ponto de equilíbrio</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;padding:10px;background:var(--white);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:10px;color:rgba(122,78,53,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Metas de faturamento mensal</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+            <span style="font-size:12px;">🔴</span>
+            <span style="font-size:12px;color:var(--mocha);flex:1;">Prejuízo</span>
+            <span style="font-size:12px;font-weight:600;color:var(--danger);">abaixo de R$ ${fmtN(peFaturamento)}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+            <span style="font-size:12px;">🟡</span>
+            <span style="font-size:12px;color:var(--mocha);flex:1;">Equilibrada (até 10%)</span>
+            <span style="font-size:12px;font-weight:600;color:var(--warn);">R$ ${fmtN(peFaturamento)} – R$ ${fmtN(fatMinimo)}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+            <span style="font-size:12px;">🟢</span>
+            <span style="font-size:12px;color:var(--mocha);flex:1;">Saudável (10–20%)</span>
+            <span style="font-size:12px;font-weight:600;color:var(--ok);">R$ ${fmtN(fatMinimo)} – R$ ${fmtN(fatSaudavel)}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:12px;">🌟</span>
+            <span style="font-size:12px;color:var(--mocha);flex:1;">Excelente (acima 20%)</span>
+            <span style="font-size:12px;font-weight:600;color:var(--ok);">acima de R$ ${fmtN(fatSaudavel)}</span>
+          </div>
+        </div>
+      `;
+    }
   }
 }
 
