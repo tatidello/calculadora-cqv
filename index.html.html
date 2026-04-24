@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Calculadora · Confeiteira que Vende</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FDF6EE;--blush:#F2C4A0;--rose:#C97B5A;--deep:#3B2214;
+  --mocha:#7A4E35;--gold:#D4A96A;--soft:#F9EFE4;--white:#FFFFFF;
+  --border:rgba(59,34,20,0.08);
+  --ok:#4A9B6F;--warn:#D4875A;--danger:#C05C4A;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);min-height:100vh;}
+.screen{display:none;padding-bottom:56px;}
+.screen.active{display:block;}
+
+.header{background:var(--deep);padding:26px 20px 20px;text-align:center;position:relative;overflow:hidden;}
+.header::before{content:'';position:absolute;top:-30px;right:-30px;width:110px;height:110px;border-radius:50%;background:rgba(212,169,106,.15);}
+.header::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:rgba(242,196,160,.1);}
+.eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:4px;position:relative;}
+.header h1{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:#fff;line-height:1.2;position:relative;}
+.header h1 span{color:var(--blush);}
+.header-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:5px;position:relative;}
+.save-ind{position:absolute;bottom:10px;right:16px;font-size:10px;color:var(--gold);font-weight:600;opacity:0;transition:opacity .4s;z-index:2;}
+
+.tabs{display:flex;margin:14px 16px 0;background:var(--white);border-radius:14px;padding:4px;box-shadow:0 2px 10px rgba(59,34,20,.07);}
+.tab{flex:1;text-align:center;padding:10px 4px;border-radius:10px;font-size:12px;font-weight:600;color:rgba(59,34,20,.38);cursor:pointer;transition:all .25s;user-select:none;}
+.tab.active{background:var(--deep);color:#fff;}
+.tab-num{display:inline-block;width:17px;height:17px;border-radius:50%;background:rgba(59,34,20,.1);color:var(--mocha);font-size:10px;font-weight:700;line-height:17px;margin-right:4px;transition:all .25s;}
+.tab.active .tab-num{background:var(--rose);color:#fff;}
+
+.card{margin:12px 16px 0;background:var(--white);border-radius:18px;overflow:hidden;box-shadow:0 2px 12px rgba(59,34,20,.06);}
+.card-hd{padding:13px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+.ci{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ia{background:#FEF3E8;}.ic{background:#F0F8F1;}.id{background:#FDF0F0;}
+.card-title{font-size:14px;font-weight:600;color:var(--deep);flex:1;}
+.card-sub{font-size:11px;color:rgba(122,78,53,.5);margin-top:1px;}
+.card-ttl{font-size:13px;font-weight:600;color:var(--mocha);white-space:nowrap;}
+.chev{font-size:10px;color:var(--rose);transition:transform .3s;margin-left:4px;}
+.chev.open{transform:rotate(180deg);}
+.cb{padding:14px 16px 16px;}
+.cb.hidden{display:none;}
+
+.pill{display:flex;align-items:center;background:var(--soft);border-radius:9px;border:1.5px solid transparent;transition:border .2s;overflow:hidden;}
+.pill:focus-within{border-color:var(--rose);}
+.pill-pre{font-size:11px;color:var(--rose);font-weight:600;padding:0 4px 0 9px;white-space:nowrap;}
+.pill-suf{font-size:11px;color:var(--mocha);font-weight:500;padding:0 9px 0 2px;white-space:nowrap;}
+.pill input{border:none;background:transparent;width:100%;padding:9px 4px;font-size:13px;font-weight:500;color:var(--deep);font-family:'DM Sans',sans-serif;outline:none;text-align:right;min-width:0;}
+.pill input::placeholder{color:rgba(59,34,20,.22);}
+
+.row{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
+.row:last-child{margin-bottom:0;}
+.lbl{flex:1;font-size:13px;color:var(--mocha);}
+.lbl small{display:block;font-size:10px;color:rgba(122,78,53,.45);margin-top:1px;}
+
+.stepper-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid var(--border);}
+.s-lbl{flex:1;font-size:13px;font-weight:500;color:var(--deep);}
+.s-lbl small{display:block;font-size:10px;color:rgba(122,78,53,.45);margin-top:1px;}
+.stepper{display:flex;align-items:center;background:var(--soft);border-radius:11px;overflow:hidden;}
+.s-btn{width:38px;height:40px;border:none;background:none;font-size:20px;color:var(--rose);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.s-inp{width:52px;border:none;background:transparent;text-align:center;font-size:15px;font-weight:600;color:var(--deep);font-family:'DM Sans',sans-serif;outline:none;padding:0;}
+
+/* TABELA INSUMOS */
+.tbl-head{display:grid;grid-template-columns:1fr 95px 60px 30px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:2px;}
+.th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(122,78,53,.4);font-weight:500;}
+.th.r{text-align:right;}
+.ins-item{display:grid;grid-template-columns:1fr 95px 60px 30px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);animation:fi .2s ease;}
+.ins-item:last-child{border-bottom:none;}
+@keyframes fi{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.ins-name{font-size:13px;color:var(--deep);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ins-detail{font-size:10px;color:rgba(122,78,53,.42);margin-top:1px;}
+.unit-tag{background:var(--soft);border-radius:8px;padding:7px 4px;font-size:11px;color:var(--mocha);font-weight:700;text-align:center;}
+.del-btn{background:none;border:none;cursor:pointer;color:rgba(59,34,20,.2);font-size:14px;padding:4px;display:flex;align-items:center;justify-content:center;transition:color .2s;}
+.del-btn:active{color:var(--danger);}
+
+/* FORM ADICIONAR */
+.add-wrap{margin:12px 16px 0;}
+.add-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--rose);margin-bottom:8px;}
+.add-g1{display:grid;grid-template-columns:1fr 80px;gap:8px;margin-bottom:8px;}
+.add-g2{display:grid;grid-template-columns:1fr 1fr 90px;gap:8px;}
+.inp{border:1.5px solid var(--border);border-radius:11px;padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;color:var(--deep);background:var(--soft);width:100%;}
+.inp:focus{border-color:var(--rose);}
+.inp::placeholder{color:rgba(59,34,20,.28);}
+/* tipo toggle */
+.tipo-toggle{display:flex;background:var(--soft);border-radius:11px;border:1.5px solid var(--border);overflow:hidden;}
+.tipo-btn{flex:1;border:none;background:transparent;padding:10px 4px;font-size:12px;font-weight:600;color:rgba(59,34,20,.4);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.tipo-btn.active{background:var(--rose);color:#fff;}
+
+.btn-add{background:var(--rose);color:#fff;border:none;border-radius:11px;padding:10px 0;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;transition:background .2s;}
+.btn-add:active{background:var(--mocha);}
+.btn-primary{background:var(--deep);color:#fff;border:none;border-radius:14px;padding:14px 0;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;margin-top:14px;transition:background .2s;display:block;text-align:center;}
+.btn-primary:active{background:var(--mocha);}
+
+.search-wrap{margin:12px 16px 0;position:relative;}
+.search-wrap input{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:10px 12px 10px 36px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;color:var(--deep);background:var(--white);}
+.search-wrap input:focus{border-color:var(--rose);}
+.s-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:rgba(122,78,53,.4);}
+.badge{background:var(--rose);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;}
+
+/* RECEITA */
+.rec-item{display:grid;grid-template-columns:1fr 88px 65px 28px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);animation:fi .2s ease;}
+.rec-item:last-child{border-bottom:none;}
+.rec-name{font-size:13px;color:var(--deep);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-detail{font-size:10px;color:rgba(122,78,53,.4);margin-top:1px;}
+.rec-cost{font-size:13px;font-weight:600;color:var(--mocha);text-align:right;}
+.rec-cost small{display:block;font-size:10px;color:rgba(122,78,53,.4);font-weight:400;}
+.add-rec-wrap{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.add-rec-row{display:flex;gap:8px;margin-top:8px;}
+.sel{border:1.5px solid var(--border);border-radius:11px;padding:10px 8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;color:var(--deep);background:var(--soft);-webkit-appearance:none;width:100%;}
+.sel:focus{border-color:var(--rose);}
+
+/* RESULTADO */
+.result-hero{margin:12px 16px 0;background:var(--deep);border-radius:20px;padding:22px 20px;position:relative;overflow:hidden;}
+.result-hero::before{content:'✦';position:absolute;top:14px;right:18px;font-size:26px;color:rgba(212,169,106,.18);}
+.rh-eye{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:3px;}
+.rh-price{font-family:'Playfair Display',serif;font-size:46px;font-weight:700;color:#fff;line-height:1;}
+.rh-price sup{font-size:20px;font-weight:400;color:var(--blush);vertical-align:super;margin-right:2px;}
+.rh-unit{font-size:12px;color:rgba(255,255,255,.38);margin-top:4px;}
+
+/* SEMÁFORO */
+.semaforo{margin-top:18px;border-radius:14px;padding:15px;transition:background .4s;}
+.s-ok    {background:rgba(74,155,111,.18);}
+.s-warn  {background:rgba(212,135,90,.18);}
+.s-danger{background:rgba(192,92,74,.18);}
+.s-empty {background:rgba(255,255,255,.06);}
+.sem-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sem-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0;transition:background .4s;}
+.sem-dot.ok    {background:#4A9B6F;box-shadow:0 0 8px rgba(74,155,111,.7);}
+.sem-dot.warn  {background:#D4875A;box-shadow:0 0 8px rgba(212,135,90,.7);}
+.sem-dot.danger{background:#C05C4A;box-shadow:0 0 8px rgba(192,92,74,.7);}
+.sem-dot.empty {background:rgba(255,255,255,.2);}
+.sem-lbl{font-size:13px;font-weight:600;color:#fff;flex:1;}
+.sem-pct{font-size:15px;font-weight:700;color:#fff;}
+.sem-track{height:7px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden;}
+.sem-fill{height:100%;border-radius:10px;transition:width .5s ease,background .4s;width:0;}
+.sem-msg{font-size:11px;color:rgba(255,255,255,.55);margin-top:8px;line-height:1.5;min-height:16px;}
+
+.breakdown{display:flex;gap:7px;margin-top:14px;}
+.bi{flex:1;background:rgba(255,255,255,.07);border-radius:12px;padding:10px 5px;text-align:center;}
+.bi-val{font-family:'Playfair Display',serif;font-size:13px;color:var(--blush);font-weight:600;}
+.bi-lbl{font-size:9px;color:rgba(255,255,255,.38);text-transform:uppercase;letter-spacing:.7px;margin-top:2px;}
+
+/* SALÁRIO */
+.salary-box{background:rgba(201,123,90,.09);border-radius:12px;padding:11px 13px;margin-bottom:12px;}
+.salary-tag{display:inline-block;background:var(--rose);color:#fff;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:6px;margin-bottom:5px;}
+.salary-msg{font-size:11px;color:var(--mocha);line-height:1.5;margin-bottom:8px;}
+
+.info-box{margin:12px 16px 0;background:var(--soft);border-radius:14px;padding:12px 15px;}
+.info-box p{font-size:12px;color:var(--mocha);line-height:1.6;}
+.info-box strong{color:var(--rose);}
+.dica{margin:12px 16px 0;background:linear-gradient(135deg,#FEF3E8,#FDF0E0);border-radius:14px;padding:12px 15px;border-left:3px solid var(--gold);}
+.dica p{font-size:12px;color:var(--mocha);line-height:1.6;}
+.dica strong{color:var(--rose);}
+
+.empty{text-align:center;padding:18px 0;}
+.empty p{font-size:13px;color:rgba(122,78,53,.42);}
+.footer{margin-top:24px;text-align:center;padding:0 20px;}
+.footer p{font-size:11px;color:rgba(59,34,20,.3);}
+.footer strong{color:var(--rose);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     TELA 1 — MEUS INSUMOS
+══════════════════════════════ -->
+<div class="screen active" id="s-insumos">
+  <div class="header">
+    <div class="eyebrow">Método Confeiteira que Vende</div>
+    <h1>Tabela de <span>Insumos</span></h1>
+    <div class="header-sub">Cadastre uma vez · Use em todas as receitas</div>
+    <div class="save-ind" id="save-ind">✓ Salvo</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="goTab(0)"><span class="tab-num">1</span>Meus Insumos</div>
+    <div class="tab" onclick="goTab(1)"><span class="tab-num">2</span>Calcular Receita</div>
+  </div>
+
+  <div class="info-box">
+    <p>🛒 Cadastre aqui <strong>todos os insumos</strong>: ingredientes e embalagens. Use sempre <strong>gramas</strong> para o que pesa e <strong>unidades</strong> para o que se conta. Comprou 1kg de açúcar? Coloque <strong>1000g</strong>.</p>
+  </div>
+
+  <div class="search-wrap">
+    <span class="s-ico">🔍</span>
+    <input type="text" id="searchInsumo" placeholder="Buscar insumo..." oninput="renderInsumos()">
+  </div>
+
+  <div class="card">
+    <div class="card-hd" onclick="toggleCard('ins')">
+      <div class="ci ia">🧈</div>
+      <div style="flex:1">
+        <div class="card-title">Insumos cadastrados <span class="badge" id="ins-count">0</span></div>
+        <div class="card-sub">Ingredientes + embalagens + materiais</div>
+      </div>
+      <div class="chev open" id="chev-ins">▼</div>
+    </div>
+    <div class="cb" id="cb-ins">
+      <div class="tbl-head">
+        <div class="th">Nome</div>
+        <div class="th r">Preço total</div>
+        <div class="th r">Qtd total</div>
+        <div class="th"></div>
+      </div>
+      <div id="ins-list"><div class="empty"><p>Carregando...</p></div></div>
+    </div>
+  </div>
+
+  <!-- FORMULÁRIO ADICIONAR -->
+  <div class="add-wrap">
+    <div class="add-lbl">+ Adicionar insumo</div>
+
+    <!-- Nome -->
+    <input class="inp" type="text" id="n-nome" placeholder="Nome do insumo (ex: Farinha de trigo, Caixinha BC25...)" style="margin-bottom:8px;">
+
+    <!-- Tipo: Gramas ou Unidades -->
+    <div class="add-g1" style="margin-bottom:8px;">
+      <div>
+        <div style="font-size:10px;color:rgba(122,78,53,.5);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Medida</div>
+        <div class="tipo-toggle">
+          <button class="tipo-btn active" id="btn-g" onclick="setTipo('g')">⚖️ Gramas</button>
+          <button class="tipo-btn" id="btn-un" onclick="setTipo('un')">🔢 Unidades</button>
+        </div>
+      </div>
+      <div id="hint-wrap">
+        <div style="font-size:10px;color:rgba(122,78,53,.5);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Dica</div>
+        <div id="tipo-hint" style="font-size:11px;color:var(--mocha);background:var(--soft);border-radius:9px;padding:9px 10px;line-height:1.4;">Ex: açúcar, farinha, manteiga</div>
+      </div>
+    </div>
+
+    <!-- Preço + Quantidade -->
+    <div class="add-g2">
+      <div>
+        <div style="font-size:10px;color:rgba(122,78,53,.5);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Preço pago</div>
+        <div class="pill">
+          <span class="pill-pre">R$</span>
+          <input type="number" id="n-preco" placeholder="0,00" inputmode="decimal" step="0.01">
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:rgba(122,78,53,.5);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px;" id="qtd-label">Quantidade (g)</div>
+        <div class="pill">
+          <input type="number" id="n-qtd" placeholder="1000" inputmode="decimal" style="text-align:center;">
+          <span class="pill-suf" id="n-suf">g</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;justify-content:flex-end;">
+        <button class="btn-add" onclick="addInsumo()">+ Add</button>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:rgba(122,78,53,.4);margin-top:8px;line-height:1.6;background:var(--soft);border-radius:10px;padding:10px 12px;">
+      💡 <strong style="color:var(--rose);">Como preencher:</strong><br>
+      Açúcar: R$ 5,00 · <strong>1000g</strong> (= 1 kg comprado)<br>
+      Ovos: R$ 9,60 · <strong>12 un</strong> (= 1 dúzia)<br>
+      Caixinha: R$ 1,91 · <strong>1 un</strong>
+    </div>
+  </div>
+
+  <div style="margin:0 16px;">
+    <button class="btn-primary" onclick="goTab(1)">Ir para Calcular Receita →</button>
+  </div>
+
+  <div class="footer"><p>Método <strong>Confeiteira que Vende</strong> · Tati Castaldello</p></div>
+</div>
+
+<!-- ══════════════════════════════
+     TELA 2 — CALCULAR RECEITA
+══════════════════════════════ -->
+<div class="screen" id="s-receita">
+  <div class="header">
+    <div class="eyebrow">Método Confeiteira que Vende</div>
+    <h1>Calcular <span>Precificação</span></h1>
+    <div class="header-sub">Bem-casados · CMV ideal ≤ 30%</div>
+    <div class="save-ind" id="save-ind2">✓ Salvo</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab" onclick="goTab(0)"><span class="tab-num">1</span>Meus Insumos</div>
+    <div class="tab active" onclick="goTab(1)"><span class="tab-num">2</span>Calcular Receita</div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="result-hero">
+    <div class="rh-eye">Preço mínimo de venda por unidade</div>
+    <div class="rh-price"><sup>R$</sup><span id="precoFinal">0,00</span></div>
+    <div class="rh-unit" id="rh-sub">Preencha a receita abaixo para calcular</div>
+    <div class="semaforo s-empty" id="semaforo">
+      <div class="sem-top">
+        <div class="sem-dot empty" id="sem-dot"></div>
+        <div class="sem-lbl" id="sem-lbl">Aguardando dados...</div>
+        <div class="sem-pct" id="sem-pct">—</div>
+      </div>
+      <div class="sem-track"><div class="sem-fill" id="sem-fill"></div></div>
+      <div class="sem-msg" id="sem-msg">Informe os ingredientes e embalagens ↓</div>
+    </div>
+    <div class="breakdown">
+      <div class="bi"><div class="bi-val" id="b-ingr">R$ 0,00</div><div class="bi-lbl">Ingredientes</div></div>
+      <div class="bi"><div class="bi-val" id="b-embal">R$ 0,00</div><div class="bi-lbl">Embalagem</div></div>
+      <div class="bi"><div class="bi-val" id="b-fixed">R$ 0,00</div><div class="bi-lbl">Fixos/un</div></div>
+    </div>
+  </div>
+
+  <!-- INGREDIENTES DA RECEITA -->
+  <div class="card">
+    <div class="card-hd" onclick="toggleCard('rec')">
+      <div class="ci ia">📋</div>
+      <div style="flex:1">
+        <div class="card-title">Ingredientes da receita</div>
+        <div class="card-sub">Do ovo até a etiqueta — tudo entra aqui</div>
+      </div>
+      <div class="card-ttl" id="ttl-rec">R$ 0,00</div>
+      <div class="chev open" id="chev-rec">▼</div>
+    </div>
+    <div class="cb" id="cb-rec">
+      <div id="rec-list"><div class="empty"><p>Adicione ingredientes abaixo.</p></div></div>
+      <div class="add-rec-wrap">
+        <div class="add-lbl">+ Adicionar à receita</div>
+        <div class="add-rec-row">
+          <select class="sel" id="rec-sel" style="flex:1;"></select>
+          <button class="btn-add" style="width:90px;flex-shrink:0;" onclick="addToReceita()">+ Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="stepper-row">
+      <div class="s-lbl">Rendimento da receita<small>quantos bem-casados?</small></div>
+      <div class="stepper">
+        <button class="s-btn" onclick="chQty('qtd-rec',-5)">−</button>
+        <input class="s-inp" type="number" id="qtd-rec" value="30" min="1" oninput="calcular(); salvar();">
+        <button class="s-btn" onclick="chQty('qtd-rec',5)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOS FIXOS -->
+  <div class="card">
+    <div class="card-hd" onclick="toggleCard('fix')">
+      <div class="ci ic">⚡</div>
+      <div style="flex:1">
+        <div class="card-title">Custos fixos mensais</div>
+        <div class="card-sub">Rateados por unidade produzida</div>
+      </div>
+      <div class="card-ttl" id="ttl-fix">R$ 0,00</div>
+      <div class="chev" id="chev-fix">▼</div>
+    </div>
+    <div class="cb hidden" id="cb-fix">
+      <div class="salary-box">
+        <div class="salary-tag">💡 Você precisa se pagar!</div>
+        <div class="salary-msg">Seu salário é um custo do negócio. Se não incluir, você está trabalhando de graça. Coloque o valor que você quer ganhar por mês.</div>
+        <div class="row" style="margin-bottom:0;">
+          <div class="lbl">Meu salário mensal</div>
+          <div class="pill" style="width:120px;flex-shrink:0;">
+            <span class="pill-pre">R$</span>
+            <input type="number" id="fx-salario" placeholder="0,00" inputmode="decimal" step="0.01" oninput="calcular();salvar();">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lbl">Aluguel<small>se tiver, proporcional</small></div>
+        <div class="pill" style="width:120px;flex-shrink:0;"><span class="pill-pre">R$</span>
+          <input type="number" id="fx-aluguel" placeholder="0,00" inputmode="decimal" step="0.01" oninput="calcular();salvar();">
+        </div>
+      </div>
+      <div class="row">
+        <div class="lbl">Energia elétrica<small>por mês</small></div>
+        <div class="pill" style="width:120px;flex-shrink:0;"><span class="pill-pre">R$</span>
+          <input type="number" id="fx-luz" placeholder="0,00" inputmode="decimal" step="0.01" oninput="calcular();salvar();">
+        </div>
+      </div>
+      <div class="row">
+        <div class="lbl">Água<small>por mês</small></div>
+        <div class="pill" style="width:120px;flex-shrink:0;"><span class="pill-pre">R$</span>
+          <input type="number" id="fx-agua" placeholder="0,00" inputmode="decimal" step="0.01" oninput="calcular();salvar();">
+        </div>
+      </div>
+      <div class="row">
+        <div class="lbl">Gás<small>por mês</small></div>
+        <div class="pill" style="width:120px;flex-shrink:0;"><span class="pill-pre">R$</span>
+          <input type="number" id="fx-gas" placeholder="0,00" inputmode="decimal" step="0.01" oninput="calcular();salvar();">
+        </div>
+      </div>
+      <div class="row">
+        <div class="lbl">Internet / celular<small>por mês</small></div>
+        <div class="pill" style="width:120px;flex-shrink:0;"><span class="pill-pre">R$</span>
+          <input type="number" id="fx-net" placeholder="0,00" inputmode="decimal" step="0.01" oninput="calcular();salvar();">
+        </div>
+      </div>
+      <div class="row">
+        <div class="lbl">Outros fixos<small>por mês</small></div>
+        <div class="pill" style="width:120px;flex-shrink:0;"><span class="pill-pre">R$</span>
+          <input type="number" id="fx-outros" placeholder="0,00" inputmode="decimal" step="0.01" oninput="calcular();salvar();">
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+        <div class="row" style="margin-bottom:0;">
+          <div class="lbl">Unidades que vendo por mês<small>para rateio dos fixos</small></div>
+          <div class="stepper">
+            <button class="s-btn" onclick="chQty('qtd-mes',-10)">−</button>
+            <input class="s-inp" type="number" id="qtd-mes" value="100" min="1" oninput="calcular();salvar();">
+            <button class="s-btn" onclick="chQty('qtd-mes',10)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dica">
+    <p>🎯 <strong>CMV é o termômetro do negócio:</strong> Ingredientes + embalagem devem representar no máximo 30% do preço de venda. Quanto menor o CMV, maior o seu lucro.</p>
+  </div>
+
+  <div class="footer" style="margin-top:20px;">
+    <p>Método <strong>Confeiteira que Vende</strong> · Tati Castaldello</p>
+    <p style="margin-top:3px;">Precificação é o primeiro pilar do seu negócio 🍰</p>
+  </div>
+</div>
+
+<script>
+// ═══════ DADOS BASE ═══════
+// tipo: 'g' = medido em gramas, 'un' = medido em unidades
+// preco = valor pago pela embalagem/pacote
+// qtd   = quantidade total nessa embalagem (em g ou un)
+// custo por unidade mínima = preco / qtd
+let insumos = [
+  // Ingredientes (g)
+  {id:1,  nome:'Ovo',                     preco:9.60,   qtd:12,   tipo:'un'},
+  {id:2,  nome:'Açúcar refinado',         preco:4.17,   qtd:1000, tipo:'g'},
+  {id:3,  nome:'Açúcar impalpável',       preco:12.00,  qtd:1000, tipo:'g'},
+  {id:4,  nome:'Açúcar demerara',         preco:6.00,   qtd:1000, tipo:'g'},
+  {id:5,  nome:'Açúcar mascavo',          preco:10.00,  qtd:1000, tipo:'g'},
+  {id:6,  nome:'Farinha de trigo',        preco:4.50,   qtd:1000, tipo:'g'},
+  {id:7,  nome:'Amido de milho',          preco:49.00,  qtd:1800, tipo:'g'},
+  {id:8,  nome:'Fermento em pó',          preco:4.00,   qtd:100,  tipo:'g'},
+  {id:9,  nome:'Manteiga',                preco:18.00,  qtd:1000, tipo:'g'},
+  {id:10, nome:'Baunilha',                preco:12.00,  qtd:960,  tipo:'g'},
+  {id:11, nome:'Ácido cítrico',           preco:6.00,   qtd:50,   tipo:'g'},
+  {id:12, nome:'Cacau em pó',             preco:45.00,  qtd:500,  tipo:'g'},
+  {id:13, nome:'Brigadeiro branco',       preco:53.00,  qtd:2400, tipo:'g'},
+  {id:14, nome:'Brigadeiro cremoso',      preco:62.00,  qtd:2400, tipo:'g'},
+  {id:15, nome:'Brigadeiro de coco',      preco:61.15,  qtd:2700, tipo:'g'},
+  {id:16, nome:'Brigadeiro de limão',     preco:9.15,   qtd:400,  tipo:'g'},
+  {id:17, nome:'Brigadeiro de maracujá',  preco:13.27,  qtd:400,  tipo:'g'},
+  {id:18, nome:'Brigadeiro pistache',     preco:124.75, qtd:2500, tipo:'g'},
+  {id:19, nome:'Geleia frutas vermelhas', preco:15.00,  qtd:400,  tipo:'g'},
+  {id:20, nome:'Abacaxi',                 preco:8.00,   qtd:1,    tipo:'un'},
+  // Embalagens (un)
+  {id:30, nome:'Caixa BC 25 unidades',    preco:1.91,   qtd:1,    tipo:'un'},
+  {id:31, nome:'Caixa BC 36 unidades',    preco:2.68,   qtd:1,    tipo:'un'},
+  {id:32, nome:'Bem-casado doce de leite',preco:1.35,   qtd:1,    tipo:'un'},
+  {id:33, nome:'Anel Juta',               preco:21.90,  qtd:45,   tipo:'un'},
+  {id:34, nome:'Anel Juta Renda',         preco:35.00,  qtd:45,   tipo:'un'},
+  {id:35, nome:'Celofane',                preco:8.00,   qtd:100,  tipo:'un'},
+  {id:36, nome:'Papel canelinha',         preco:12.00,  qtd:100,  tipo:'un'},
+  {id:37, nome:'Etiqueta',                preco:4.00,   qtd:1,    tipo:'un'},
+  {id:38, nome:'Chaton resina',           preco:40.00,  qtd:100,  tipo:'un'},
+];
+
+let receita = [
+  {iid:1,  qtd:4},
+  {iid:2,  qtd:200},
+  {iid:6,  qtd:250},
+  {iid:9,  qtd:150},
+  {iid:13, qtd:500},
+  {iid:30, qtd:1},
+  {iid:33, qtd:1},
+  {iid:37, qtd:1},
+];
+
+let nid = 100;
+let tipoAtual = 'g'; // tipo selecionado no form
+
+// ═══════ HELPERS ═══════
+function fmt(v){return 'R$ '+v.toFixed(2).replace('.',',');}
+function fmtN(v){return v.toFixed(2).replace('.',',');}
+function val(id){return parseFloat(document.getElementById(id).value)||0;}
+
+// custo por unidade mínima (por grama ou por unidade)
+function cpu(ins){ return ins.preco / ins.qtd; }
+
+function isEmb(ins){
+  // embalagem = tipo 'un' E não é ovo ou abacaxi
+  return ins.tipo === 'un' && ins.id >= 30;
+}
+
+// ═══════ TIPO TOGGLE ═══════
+function setTipo(t){
+  tipoAtual = t;
+  document.getElementById('btn-g').classList.toggle('active', t==='g');
+  document.getElementById('btn-un').classList.toggle('active', t==='un');
+  document.getElementById('n-suf').textContent = t;
+  document.getElementById('qtd-label').textContent = t==='g' ? 'Quantidade (g)' : 'Quantidade (un)';
+  document.getElementById('n-qtd').placeholder = t==='g' ? '1000' : '1';
+  document.getElementById('tipo-hint').textContent = t==='g'
+    ? 'Ex: açúcar, farinha, manteiga, brigadeiro...'
+    : 'Ex: ovos, caixinhas, etiquetas, anéis...';
+}
+
+// ═══════ TABS ═══════
+function goTab(n){
+  document.getElementById('s-insumos').classList.toggle('active',n===0);
+  document.getElementById('s-receita').classList.toggle('active',n===1);
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  if(n===1){renderReceita();calcular();}
+}
+
+function toggleCard(k){
+  const cb=document.getElementById('cb-'+k);
+  const ch=document.getElementById('chev-'+k);
+  if(!cb||!ch)return;
+  cb.classList.toggle('hidden');
+  ch.classList.toggle('open');
+}
+
+// ═══════ AUTOSAVE ═══════
+const SAVE_KEY='cqv_v4';
+function salvar(){
+  try{
+    const fixos={
+      salario:val('fx-salario'), aluguel:val('fx-aluguel'),
+      luz:val('fx-luz'), agua:val('fx-agua'), gas:val('fx-gas'),
+      net:val('fx-net'), outros:val('fx-outros'),
+      qtdMes:document.getElementById('qtd-mes').value
+    };
+    localStorage.setItem(SAVE_KEY,JSON.stringify({insumos,receita,fixos,
+      qtdRec:document.getElementById('qtd-rec').value, nid}));
+    ['save-ind','save-ind2'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el)return;
+      el.style.opacity='1';
+      clearTimeout(el._t);
+      el._t=setTimeout(()=>el.style.opacity='0',2000);
+    });
+  }catch(e){}
+}
+
+function restaurar(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return;
+    const d=JSON.parse(raw);
+    if(d.insumos) insumos=d.insumos;
+    if(d.receita) receita=d.receita;
+    if(d.nid)     nid=d.nid;
+    if(d.qtdRec)  document.getElementById('qtd-rec').value=d.qtdRec;
+    if(d.fixos){
+      const f=d.fixos;
+      if(f.salario) document.getElementById('fx-salario').value=f.salario;
+      if(f.aluguel) document.getElementById('fx-aluguel').value=f.aluguel;
+      if(f.luz)     document.getElementById('fx-luz').value=f.luz;
+      if(f.agua)    document.getElementById('fx-agua').value=f.agua;
+      if(f.gas)     document.getElementById('fx-gas').value=f.gas;
+      if(f.net)     document.getElementById('fx-net').value=f.net;
+      if(f.outros)  document.getElementById('fx-outros').value=f.outros;
+      if(f.qtdMes)  document.getElementById('qtd-mes').value=f.qtdMes;
+    }
+  }catch(e){}
+}
+
+// ═══════ TELA 1: INSUMOS ═══════
+function renderInsumos(){
+  const q=(document.getElementById('searchInsumo').value||'').toLowerCase();
+  const list=document.getElementById('ins-list');
+  const fil=insumos.filter(i=>i.nome.toLowerCase().includes(q));
+  document.getElementById('ins-count').textContent=insumos.length;
+  if(fil.length===0){list.innerHTML='<div class="empty"><p>Nenhum insumo encontrado.</p></div>';return;}
+  list.innerHTML='';
+  fil.forEach(ins=>{
+    const c=cpu(ins);
+    const suf=ins.tipo;
+    const d=document.createElement('div');
+    d.className='ins-item';
+    d.innerHTML=`
+      <div>
+        <div class="ins-name">${ins.nome}</div>
+        <div class="ins-detail">${ins.tipo==='g'?'🧈':'📦'} R$ ${c.toFixed(4).replace('.',',')} por ${suf}</div>
+      </div>
+      <div class="pill" style="width:95px;">
+        <span class="pill-pre">R$</span>
+        <input type="number" value="${ins.preco.toFixed(2)}" inputmode="decimal" step="0.01"
+          onchange="upPreco(${ins.id},this.value)" oninput="upPreco(${ins.id},this.value)">
+      </div>
+      <div class="unit-tag">${ins.qtd}${suf}</div>
+      <button class="del-btn" onclick="delIns(${ins.id})">✕</button>
+    `;
+    list.appendChild(d);
+  });
+}
+
+function upPreco(id,v){
+  const ins=insumos.find(i=>i.id===id);
+  if(ins){ins.preco=parseFloat(v)||0; salvar(); calcular();}
+}
+
+function delIns(id){
+  insumos=insumos.filter(i=>i.id!==id);
+  receita=receita.filter(r=>r.iid!==id);
+  renderInsumos();renderReceita();calcular();salvar();
+}
+
+function addInsumo(){
+  const nome=document.getElementById('n-nome').value.trim();
+  const preco=parseFloat(document.getElementById('n-preco').value)||0;
+  const qtd=parseFloat(document.getElementById('n-qtd').value)||1;
+  if(!nome){document.getElementById('n-nome').focus();return;}
+  // para embalagens adicionadas pelo usuário, usar id >= 100 para isEmb detectar
+  insumos.push({id:nid++, nome, preco, qtd, tipo:tipoAtual});
+  document.getElementById('n-nome').value='';
+  document.getElementById('n-preco').value='';
+  document.getElementById('n-qtd').value='';
+  renderInsumos();salvar();
+}
+
+// ═══════ TELA 2: RECEITA ═══════
+function renderReceita(){
+  const list=document.getElementById('rec-list');
+  if(receita.length===0){
+    list.innerHTML='<div class="empty"><p>Adicione ingredientes e embalagens abaixo.</p></div>';
+    upRecSel();return;
+  }
+  list.innerHTML='';
+  receita.forEach((r,idx)=>{
+    const ins=insumos.find(i=>i.id===r.iid);
+    if(!ins)return;
+    const custo=cpu(ins)*r.qtd;
+    const suf=ins.tipo;
+    const d=document.createElement('div');
+    d.className='rec-item';
+    d.innerHTML=`
+      <div>
+        <div class="rec-name">${ins.nome}</div>
+        <div class="rec-detail">${ins.tipo==='g'?'🧈':'📦'} ${fmt(ins.preco)} / ${ins.qtd}${suf}</div>
+      </div>
+      <div class="pill">
+        <input type="number" value="${r.qtd}" inputmode="decimal"
+          step="${ins.tipo==='un'?1:5}" min="0"
+          oninput="upRecQtd(${idx},this.value)" style="text-align:right;padding:8px;">
+        <span class="pill-suf">${suf}</span>
+      </div>
+      <div class="rec-cost">${fmt(custo)}<small>${r.qtd}${suf}</small></div>
+      <button class="del-btn" onclick="delRec(${idx})">✕</button>
+    `;
+    list.appendChild(d);
+  });
+  upRecSel();
+}
+
+function upRecSel(){
+  const sel=document.getElementById('rec-sel');
+  const usados=new Set(receita.map(r=>r.iid));
+  const disp=insumos.filter(i=>!usados.has(i.id));
+  if(disp.length===0){
+    sel.innerHTML='<option>Todos os insumos já adicionados ✓</option>';
+    sel.disabled=true;
+  }else{
+    sel.disabled=false;
+    sel.innerHTML=disp.map(i=>`<option value="${i.id}">${i.tipo==='g'?'🧈':'📦'} ${i.nome} (${i.qtd}${i.tipo})</option>`).join('');
+  }
+}
+
+function addToReceita(){
+  const sel=document.getElementById('rec-sel');
+  if(sel.disabled)return;
+  const id=parseInt(sel.value);
+  const ins=insumos.find(i=>i.id===id);
+  if(!ins)return;
+  receita.push({iid:id, qtd:ins.tipo==='un'?1:50});
+  renderReceita();calcular();salvar();
+}
+
+function delRec(idx){
+  receita.splice(idx,1);
+  renderReceita();calcular();salvar();
+}
+
+function upRecQtd(idx,v){
+  receita[idx].qtd=parseFloat(v)||0;
+  calcular();salvar();
+  // atualiza custo sem re-render completo
+  const ins=insumos.find(i=>i.id===receita[idx].iid);
+  if(!ins)return;
+  const custo=cpu(ins)*receita[idx].qtd;
+  const items=document.querySelectorAll('.rec-item');
+  if(items[idx]){
+    const el=items[idx].querySelector('.rec-cost');
+    if(el)el.innerHTML=`${fmt(custo)}<small>${receita[idx].qtd}${ins.tipo}</small>`;
+  }
+}
+
+// ═══════ CALCULAR + SEMÁFORO ═══════
+function chQty(id,d){
+  const el=document.getElementById(id);
+  el.value=Math.max(1,(parseInt(el.value)||1)+d);
+  calcular();salvar();
+}
+
+function calcular(){
+  const qtdRec=Math.max(1,parseInt(document.getElementById('qtd-rec').value)||1);
+  const qtdMes=Math.max(1,parseInt(document.getElementById('qtd-mes').value)||1);
+
+  let totIngr=0, totEmbal=0;
+  receita.forEach(r=>{
+    const ins=insumos.find(i=>i.id===r.iid);
+    if(!ins)return;
+    const c=cpu(ins)*r.qtd;
+    if(ins.id>=30) totEmbal+=c; else totIngr+=c;
+  });
+
+  const ingrUn  = totIngr / qtdRec;
+  const embalUn = totEmbal / qtdRec;
+  const totFixo = val('fx-salario')+val('fx-aluguel')+val('fx-luz')+val('fx-agua')+val('fx-gas')+val('fx-net')+val('fx-outros');
+  const fixoUn  = totFixo / qtdMes;
+  const custoTotal = ingrUn + embalUn + fixoUn;
+
+  // Preço mínimo: CMV (ingr+embal) ≤ 30% do preço
+  const cmvBase = ingrUn + embalUn;
+  let preco = cmvBase > 0 ? cmvBase / 0.30 : custoTotal > 0 ? custoTotal * 1.05 : 0;
+  if(preco < custoTotal) preco = custoTotal * 1.05;
+
+  const cmvReal = preco > 0 ? (cmvBase / preco) * 100 : 0;
+
+  // UI
+  document.getElementById('precoFinal').textContent=fmtN(preco);
+  document.getElementById('rh-sub').textContent=`Custo/un: R$ ${fmtN(custoTotal)} · Receita rende ${qtdRec} unidades`;
+  document.getElementById('b-ingr').textContent=fmt(ingrUn);
+  document.getElementById('b-embal').textContent=fmt(embalUn);
+  document.getElementById('b-fixed').textContent=fmt(fixoUn);
+  document.getElementById('ttl-rec').textContent=fmt(ingrUn+embalUn);
+  document.getElementById('ttl-fix').textContent=fmt(fixoUn);
+
+  // SEMÁFORO
+  const sem=document.getElementById('semaforo');
+  const dot=document.getElementById('sem-dot');
+  const lbl=document.getElementById('sem-lbl');
+  const pct=document.getElementById('sem-pct');
+  const fill=document.getElementById('sem-fill');
+  const msg=document.getElementById('sem-msg');
+
+  pct.textContent=cmvReal.toFixed(1)+'%';
+  fill.style.width=Math.min(cmvReal,100)+'%';
+
+  if(preco===0||cmvBase===0){
+    sem.className='semaforo s-empty';
+    dot.className='sem-dot empty';
+    lbl.textContent='Aguardando dados...';
+    pct.textContent='—';
+    fill.style.background='rgba(255,255,255,.15)';
+    msg.textContent='Informe os ingredientes e embalagens da receita ↓';
+  } else if(cmvReal<=30){
+    sem.className='semaforo s-ok';
+    dot.className='sem-dot ok';
+    lbl.textContent='✅ CMV saudável';
+    fill.style.background='#4A9B6F';
+    msg.textContent=`CMV de ${cmvReal.toFixed(1)}% — seu negócio está sustentável com esse preço.`;
+  } else if(cmvReal<=35){
+    sem.className='semaforo s-warn';
+    dot.className='sem-dot warn';
+    lbl.textContent='⚠️ Ponto de atenção';
+    fill.style.background='#D4875A';
+    msg.textContent=`CMV de ${cmvReal.toFixed(1)}% — entre 30% e 35%. Reveja fornecedores ou reduza custos.`;
+  } else {
+    sem.className='semaforo s-danger';
+    dot.className='sem-dot danger';
+    lbl.textContent='🚨 Negócio em risco!';
+    fill.style.background='#C05C4A';
+    msg.textContent=`CMV de ${cmvReal.toFixed(1)}% — acima de 35%. Você pode estar no prejuízo. Reveja urgente!`;
+  }
+}
+
+// ═══════ INIT ═══════
+restaurar();
+renderInsumos();
+setTipo('g');
+renderReceita();
+calcular();
+</script>
+</body>
+</html>
