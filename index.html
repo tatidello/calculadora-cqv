@@ -60,10 +60,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);
 .s-btn{width:38px;height:40px;border:none;background:none;font-size:20px;color:var(--rose);cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .s-inp{width:52px;border:none;background:transparent;text-align:center;font-size:15px;font-weight:600;color:var(--deep);font-family:'DM Sans',sans-serif;outline:none;padding:0;}
 
-.tbl-head{display:grid;grid-template-columns:1fr 90px 58px 28px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:2px;}
+.tbl-head{display:grid;grid-template-columns:1fr 90px 72px 28px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:2px;}
 .th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(122,78,53,.4);font-weight:500;}
 .th.r{text-align:right;}
-.ins-item{display:grid;grid-template-columns:1fr 90px 58px 28px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);animation:fi .2s ease;}
+.ins-item{display:grid;grid-template-columns:1fr 90px 72px 28px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);animation:fi .2s ease;}
 .ins-item:last-child{border-bottom:none;}
 @keyframes fi{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
 .ins-name{font-size:13px;color:var(--deep);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -206,7 +206,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);
     </div>
     <div class="cb" id="cb-ins">
       <div class="tbl-head">
-        <div class="th">Nome</div><div class="th r">Preço</div><div class="th r">Qtd</div><div class="th"></div>
+        <div class="th">Nome</div><div class="th r">Preço</div><div class="th r">Qtd total</div><div class="th"></div>
       </div>
       <div id="ins-list"><div class="empty"><p>Carregando...</p></div></div>
     </div>
@@ -626,12 +626,17 @@ function renderInsumos(){
       '<div class="pill" style="width:90px;"><span class="pill-pre">R$</span>'+
       '<input type="number" value="'+ins.preco.toFixed(2)+'" inputmode="decimal" step="0.01" '+
       'onchange="upPreco('+ins.id+',this.value)" oninput="upPreco('+ins.id+',this.value)"></div>'+
-      '<div class="unit-tag">'+ins.qtd+ins.tipo+'</div>'+
+      '<div class="pill" style="overflow:hidden;">'+
+      '<input type="number" value="'+ins.qtd+'" inputmode="decimal" step="1" min="1" '+
+      'onchange="upQtd('+ins.id+',this.value)" oninput="upQtd('+ins.id+',this.value)" '+
+      'style="text-align:right;padding:8px 4px;">'+
+      '<span class="pill-suf">'+ins.tipo+'</span></div>'+
       '<button class="del-btn" onclick="delIns('+ins.id+')">✕</button>';
     list.appendChild(d);
   });
 }
 function upPreco(id,v){var ins=insumos.find(function(i){return i.id===id;});if(ins){ins.preco=parseFloat(v)||0;salvar();}}
+function upQtd(id,v){var ins=insumos.find(function(i){return i.id===id;});if(ins){ins.qtd=parseFloat(v)||1;salvar();}}
 function delIns(id){insumos=insumos.filter(function(i){return i.id!==id;});renderInsumos();salvar();}
 function addInsumo(){
   var nome=document.getElementById('n-nome').value.trim();
@@ -913,23 +918,4 @@ function salvarReceita(){
     cmv:res.cmvReal,
     lucroPorc:res.lucroPorc,
     lucroUn:res.lucroUn,
-    savedAt:new Date().toLocaleDateString('pt-BR')
-  };
-  if(receitaEditandoId){
-    var idx=receitasSalvas.findIndex(function(r){return r.id===receitaEditandoId;});
-    if(idx>=0)receitasSalvas[idx]=recObj;
-  }else{receitasSalvas.push(recObj);}
-  salvar();
-  navTo('s-receitas','nav-receitas');
-  renderReceitas();
-}
-
-// INIT
-restaurar();
-renderInsumos();
-carregarFixos();
-setTipo('g');
-renderReceitas();
-</script>
-</body>
-</html>
+    savedAt:new Date().to
