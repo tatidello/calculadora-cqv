@@ -60,6 +60,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);
 .s-btn{width:38px;height:40px;border:none;background:none;font-size:20px;color:var(--rose);cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .s-inp{width:52px;border:none;background:transparent;text-align:center;font-size:15px;font-weight:600;color:var(--deep);font-family:'DM Sans',sans-serif;outline:none;padding:0;}
 
+.fx-item{display:grid;grid-template-columns:1fr 100px 28px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);animation:fi .2s ease;}
+.fx-item:last-child{border-bottom:none;}
+.fx-nome{font-size:13px;color:var(--deep);font-weight:500;}
 .tbl-head{display:grid;grid-template-columns:1fr 90px 72px 28px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:2px;}
 .th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(122,78,53,.4);font-weight:500;}
 .th.r{text-align:right;}
@@ -252,98 +255,61 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--deep);
 <div class="screen" id="s-fixos">
   <div class="header">
     <div class="eyebrow">Método Confeiteira que Vende</div>
-    <h1>Custos <span>Fixos</span></h1>
+    <h1>Custos <span>do Negócio</span></h1>
     <div class="header-sub">Preencha uma vez · Usados em todas as receitas</div>
     <div class="save-ind" id="save-ind-fixos">✓ Salvo</div>
   </div>
+
   <div class="info-box">
-    <p>⚡ Esses custos existem todo mês, independente de quantos doces você vende. Eles são <strong>rateados por unidade</strong> — quanto mais você vende, menos pesa em cada produto.</p>
+    <p>⚡ Liste aqui <strong>todos os seus custos mensais</strong> — salário, luz, gás, água, funcionário, gasolina, qualquer coisa. Quanto mais completo, mais preciso o cálculo.</p>
   </div>
 
+  <!-- SALARY HIGHLIGHT -->
+  <div style="margin:12px 16px 0;">
+    <div class="salary-box">
+      <div class="salary-tag">💡 Não esqueça do seu salário!</div>
+      <div class="salary-msg">Seu salário é um custo do negócio. Se não incluir, você está trabalhando de graça.</div>
+    </div>
+  </div>
+
+  <!-- LISTA DE CUSTOS FIXOS -->
   <div class="card">
-    <div class="card-hd" onclick="toggleCard('fx-pessoal')">
-      <div class="ci ia">👩</div>
-      <div style="flex:1"><div class="card-title">Salário</div><div class="card-sub">O que você quer ganhar por mês</div></div>
-      <div class="card-ttl" id="ttl-fx-pessoal">R$ 0,00</div>
-      <div class="chev open" id="chev-fx-pessoal">▼</div>
+    <div class="card-hd" onclick="toggleCard('fx-lista')">
+      <div class="ci ic">⚡</div>
+      <div style="flex:1">
+        <div class="card-title">Custos cadastrados <span class="badge" id="fx-count">0</span></div>
+        <div class="card-sub">Todos os seus custos mensais</div>
+      </div>
+      <div class="card-ttl" id="fx-total-inline">R$ 0,00</div>
+      <div class="chev open" id="chev-fx-lista">▼</div>
     </div>
-    <div class="cb" id="cb-fx-pessoal">
-      <div class="salary-box">
-        <div class="salary-tag">💡 Você precisa se pagar!</div>
-        <div class="salary-msg">Seu salário é um custo do negócio. Se não incluir, você está trabalhando de graça — e isso não aparece no CMV!</div>
-      </div>
-      <div class="row" style="margin-bottom:0;">
-        <div class="lbl">Meu salário mensal<small>quanto você quer receber</small></div>
-        <div class="pill" style="width:130px;flex-shrink:0;"><span class="pill-pre">R$</span>
-          <input type="number" id="fx-salario" placeholder="0,00" inputmode="decimal" step="0.01" oninput="salvarFixos();atualizarTotaisFixos();">
-        </div>
-      </div>
+    <div class="cb" id="cb-fx-lista">
+      <div style="display:grid;grid-template-columns:1fr 100px 28px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:2px;"><div class="th">Custo</div><div class="th r">Valor/mês</div><div class="th"></div></div>
+      <div id="fx-lista"></div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-hd" onclick="toggleCard('fx-estrutura')">
-      <div class="ci ic">🏠</div>
-      <div style="flex:1"><div class="card-title">Estrutura</div><div class="card-sub">Moradia e funcionamento</div></div>
-      <div class="card-ttl" id="ttl-fx-estrutura">R$ 0,00</div>
-      <div class="chev" id="chev-fx-estrutura">▼</div>
+  <!-- ADD CUSTO FIXO -->
+  <div class="add-wrap">
+    <div class="add-lbl">+ Adicionar custo</div>
+    <div style="display:grid;grid-template-columns:1fr 130px 80px;gap:8px;">
+      <input class="inp" type="text" id="fx-new-nome" placeholder="Ex: Salário, Gasolina...">
+      <div class="pill">
+        <span class="pill-pre">R$</span>
+        <input type="number" id="fx-new-valor" placeholder="0,00" inputmode="decimal" step="0.01">
+      </div>
+      <button class="btn-add" onclick="addCustoFixo()">+ Add</button>
     </div>
-    <div class="cb hidden" id="cb-fx-estrutura">
-      <div class="row"><div class="lbl">Aluguel<small>proporcional ao uso da cozinha</small></div>
-        <div class="pill" style="width:130px;flex-shrink:0;"><span class="pill-pre">R$</span><input type="number" id="fx-aluguel" placeholder="0,00" inputmode="decimal" step="0.01" oninput="salvarFixos();atualizarTotaisFixos();"></div>
-      </div>
-      <div class="row"><div class="lbl">Energia elétrica<small>conta mensal</small></div>
-        <div class="pill" style="width:130px;flex-shrink:0;"><span class="pill-pre">R$</span><input type="number" id="fx-luz" placeholder="0,00" inputmode="decimal" step="0.01" oninput="salvarFixos();atualizarTotaisFixos();"></div>
-      </div>
-      <div class="row"><div class="lbl">Água<small>conta mensal</small></div>
-        <div class="pill" style="width:130px;flex-shrink:0;"><span class="pill-pre">R$</span><input type="number" id="fx-agua" placeholder="0,00" inputmode="decimal" step="0.01" oninput="salvarFixos();atualizarTotaisFixos();"></div>
-      </div>
-      <div class="row"><div class="lbl">Gás<small>por mês</small></div>
-        <div class="pill" style="width:130px;flex-shrink:0;"><span class="pill-pre">R$</span><input type="number" id="fx-gas" placeholder="0,00" inputmode="decimal" step="0.01" oninput="salvarFixos();atualizarTotaisFixos();"></div>
-      </div>
+    <div style="font-size:11px;color:rgba(122,78,53,.4);margin-top:8px;line-height:1.6;background:var(--soft);border-radius:10px;padding:10px 12px;">
+      💡 <strong style="color:var(--rose);">Exemplos:</strong> Salário · Aluguel · Energia · Água · Gás · Internet · Gasolina · Funcionário · Contador
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-hd" onclick="toggleCard('fx-negocio')">
-      <div class="ci ib">📱</div>
-      <div style="flex:1"><div class="card-title">Negócio</div><div class="card-sub">Custos de operação</div></div>
-      <div class="card-ttl" id="ttl-fx-negocio">R$ 0,00</div>
-      <div class="chev" id="chev-fx-negocio">▼</div>
-    </div>
-    <div class="cb hidden" id="cb-fx-negocio">
-      <div class="row"><div class="lbl">Internet / celular<small>por mês</small></div>
-        <div class="pill" style="width:130px;flex-shrink:0;"><span class="pill-pre">R$</span><input type="number" id="fx-net" placeholder="0,00" inputmode="decimal" step="0.01" oninput="salvarFixos();atualizarTotaisFixos();"></div>
-      </div>
-      <div class="row"><div class="lbl">Contador / MEI<small>por mês</small></div>
-        <div class="pill" style="width:130px;flex-shrink:0;"><span class="pill-pre">R$</span><input type="number" id="fx-contador" placeholder="0,00" inputmode="decimal" step="0.01" oninput="salvarFixos();atualizarTotaisFixos();"></div>
-      </div>
-      <div class="row"><div class="lbl">Marketing / embalagens extra<small>por mês</small></div>
-        <div class="pill" style="width:130px;flex-shrink:0;"><span class="pill-pre">R$</span><input type="number" id="fx-marketing" placeholder="0,00" inputmode="decimal" step="0.01" oninput="salvarFixos();atualizarTotaisFixos();"></div>
-      </div>
-      <div class="row"><div class="lbl">Outros<small>por mês</small></div>
-        <div class="pill" style="width:130px;flex-shrink:0;"><span class="pill-pre">R$</span><input type="number" id="fx-outros" placeholder="0,00" inputmode="decimal" step="0.01" oninput="salvarFixos();atualizarTotaisFixos();"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOTAL FIXOS + META -->
-  <div class="card" style="margin-bottom:0;">
-    <div class="card-hd">
-      <div class="ci ip">📊</div>
-      <div style="flex:1"><div class="card-title">Total de custos fixos</div><div class="card-sub">Sua meta de vendas por mês</div></div>
-    </div>
-    <div class="cb">
-      <div style="text-align:center;margin-bottom:16px;">
-        <div style="font-size:11px;color:rgba(122,78,53,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Total fixo mensal</div>
-        <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--deep);" id="fx-total-display">R$ 0,00</div>
-      </div>
-      <div style="background:var(--soft);border-radius:10px;padding:10px 12px;margin-top:4px;">
-        <p style="font-size:12px;color:var(--mocha);line-height:1.6;">
-          💡 Com base nos seus custos fixos e no preço de venda, a calculadora mostra automaticamente <strong style="color:var(--rose);">quanto você precisa faturar</strong> para cobrir tudo e ter lucro.
-        </p>
-      </div>
-    </div>
+  <!-- TOTAL -->
+  <div style="margin:14px 16px 0;background:var(--deep);border-radius:18px;padding:20px;text-align:center;">
+    <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Total mensal de custos fixos</div>
+    <div style="font-family:'Playfair Display',serif;font-size:38px;font-weight:700;color:#fff;" id="fx-total-display">R$ 0,00</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Esse valor é usado automaticamente em todas as receitas</div>
   </div>
 
   <div class="footer" style="margin-top:16px;"><p>Método <strong>Confeiteira que Vende</strong> · Tati Castaldello</p></div>
@@ -509,7 +475,7 @@ var receitaAtual = [];
 var receitaEditandoId = null;
 var nid = 100;
 var tipoAtual = 'g';
-var fixosGlobais = {salario:0,aluguel:0,luz:0,agua:0,gas:0,net:0,contador:0,marketing:0,outros:0};
+var custosFixos = []; // [{id, nome, valor}]
 
 function fmt(v){return 'R$ '+v.toFixed(2).replace('.',',');}
 function fmtN(v){return v.toFixed(2).replace('.',',');}
@@ -553,7 +519,7 @@ function salvar(){
   try{
     localStorage.setItem(SAVE_KEY,JSON.stringify({
       insumos:insumos,receitasSalvas:receitasSalvas,
-      nid:nid,fixosGlobais:fixosGlobais
+      nid:nid,custosFixos:custosFixos
     }));
     mostrarSalvo(['save-ind','save-ind2','save-ind-fixos']);
   }catch(e){}
@@ -566,7 +532,7 @@ function restaurar(){
     if(d.insumos&&d.insumos.length>0)insumos=d.insumos;
     if(d.receitasSalvas)receitasSalvas=d.receitasSalvas;
     if(d.nid)nid=d.nid;
-    if(d.fixosGlobais)fixosGlobais=d.fixosGlobais;
+    if(d.custosFixos)custosFixos=d.custosFixos;
   }catch(e){}
 }
 function carregarFixos(){
@@ -793,9 +759,7 @@ function calcular(){
   var materiaUn=totMateria/qtdRec;
 
   // Fixos (sem ratear por unidade — calculados separado no faturamento)
-  var totFixo=fixosGlobais.salario+fixosGlobais.aluguel+fixosGlobais.luz+
-    fixosGlobais.agua+fixosGlobais.gas+fixosGlobais.net+
-    fixosGlobais.contador+fixosGlobais.marketing+fixosGlobais.outros;
+  var totFixo=totalCustosFixos();
 
   // Preço mínimo: CMV 30% da matéria prima
   var precoMin=materiaUn>0?materiaUn/0.30:0;
@@ -918,4 +882,24 @@ function salvarReceita(){
     cmv:res.cmvReal,
     lucroPorc:res.lucroPorc,
     lucroUn:res.lucroUn,
-    savedAt:new Date().to
+    savedAt:new Date().toLocaleDateString('pt-BR')
+  };
+  if(receitaEditandoId){
+    var idx=receitasSalvas.findIndex(function(r){return r.id===receitaEditandoId;});
+    if(idx>=0)receitasSalvas[idx]=recObj;
+  }else{receitasSalvas.push(recObj);}
+  salvar();
+  navTo('s-receitas','nav-receitas');
+  renderReceitas();
+}
+
+// INIT
+restaurar();
+renderInsumos();
+carregarFixos();
+setTipo('g');
+renderReceitas();
+renderCustosFixos();
+</script>
+</body>
+</html>
