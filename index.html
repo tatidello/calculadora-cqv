@@ -544,24 +544,52 @@ function carregarFixos(){
   });
   atualizarTotaisFixos();
 }
-function salvarFixos(){
-  fixosGlobais={
-    salario:val('fx-salario'),aluguel:val('fx-aluguel'),
-    luz:val('fx-luz'),agua:val('fx-agua'),gas:val('fx-gas'),
-    net:val('fx-net'),contador:val('fx-contador'),
-    marketing:val('fx-marketing'),outros:val('fx-outros')
-  };
-  salvar();
+function totalCustosFixos(){
+  return custosFixos.reduce(function(s,c){return s+c.valor;},0);
 }
-function atualizarTotaisFixos(){
-  var s=val('fx-salario');
-  var est=val('fx-aluguel')+val('fx-luz')+val('fx-agua')+val('fx-gas');
-  var neg=val('fx-net')+val('fx-contador')+val('fx-marketing')+val('fx-outros');
-  var tot=s+est+neg;
-  var el=document.getElementById('ttl-fx-pessoal');if(el)el.textContent=fmt(s);
-  el=document.getElementById('ttl-fx-estrutura');if(el)el.textContent=fmt(est);
-  el=document.getElementById('ttl-fx-negocio');if(el)el.textContent=fmt(neg);
-  el=document.getElementById('fx-total-display');if(el)el.textContent=fmt(tot);
+function salvarFixos(){salvar();}
+function carregarFixos(){renderCustosFixos();}
+function atualizarTotaisFixos(){renderCustosFixos();}
+function renderCustosFixos(){
+  var list=document.getElementById('fx-lista');
+  if(!list)return;
+  var tot=totalCustosFixos();
+  var countEl=document.getElementById('fx-count');
+  if(countEl)countEl.textContent=custosFixos.length;
+  var inlineEl=document.getElementById('fx-total-inline');
+  if(inlineEl)inlineEl.textContent=fmt(tot);
+  var totalEl=document.getElementById('fx-total-display');
+  if(totalEl)totalEl.textContent=fmt(tot);
+  if(custosFixos.length===0){
+    list.innerHTML='<div class="empty"><p>Nenhum custo cadastrado. Adicione abaixo!</p></div>';return;
+  }
+  list.innerHTML='';
+  custosFixos.forEach(function(c){
+    var d=document.createElement('div');d.className='fx-item';
+    d.innerHTML='<div class="fx-nome">'+c.nome+'</div>'+
+      '<div class="pill" style="width:100px;"><span class="pill-pre">R$</span>'+
+      '<input type="number" value="'+c.valor.toFixed(2)+'" inputmode="decimal" step="0.01" '+
+      'onchange="upCusto('+c.id+',this.value)" oninput="upCusto('+c.id+',this.value)"></div>'+
+      '<button class="del-btn" onclick="delCusto('+c.id+')">\u2715</button>';
+    list.appendChild(d);
+  });
+}
+function addCustoFixo(){
+  var nome=document.getElementById('fx-new-nome').value.trim();
+  var valor=parseFloat(document.getElementById('fx-new-valor').value)||0;
+  if(!nome){document.getElementById('fx-new-nome').focus();return;}
+  custosFixos.push({id:nid++,nome:nome,valor:valor});
+  document.getElementById('fx-new-nome').value='';
+  document.getElementById('fx-new-valor').value='';
+  renderCustosFixos();salvar();
+}
+function upCusto(id,v){
+  var c=custosFixos.find(function(x){return x.id===id;});
+  if(c){c.valor=parseFloat(v)||0;renderCustosFixos();salvar();}
+}
+function delCusto(id){
+  custosFixos=custosFixos.filter(function(x){return x.id!==id;});
+  renderCustosFixos();salvar();
 }
 
 
